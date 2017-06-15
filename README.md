@@ -2,7 +2,7 @@
 This repo is for the demo purpose of Hackntu Data science program.
 
 # About
-Recommendation System made using AutoEncoder.
+Recommendation System core algorithms made using AutoEncoder.
 Pytorch is mainly used to build AutoEncoder.
 
 1.training.base
