@@ -7,6 +7,9 @@ Pytorch is mainly used to build AutoEncoder.
 
 1.training.base
 - training data
+  - first column represents ```ID```
+  - Sec column represents ```product number```
+  - third column represents ```classified web-browsing time category```
  
 2.testing.test
 - test data
