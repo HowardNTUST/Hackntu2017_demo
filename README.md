@@ -49,7 +49,7 @@ class SAE(nn.Module):
 ```
 * then ```torch.load autoencoder.pkl``` as follows:
  ```python
- sae2.load_state_dict(torch.load('net_params.pkl'))
+ sae2.load_state_dict(torch.load('autoencoder.pkl'))
  ```
  * and directly replace ```sae``` with your customized ```sae2``` [here](https://github.com/HowardNTUST/Hackntu2017_demo/blob/master/recom_autoencoder.py#L167)
   
