@@ -12,9 +12,9 @@ from torch.autograd import Variable
 import matplotlib.pyplot as plt
 
 # Preparing the training set and the test set
-training_set = pd.read_csv('.../training.base', delimiter = '\t')
+training_set = pd.read_csv('training.base', delimiter = '\t')
 training_set = np.array(training_set, dtype = 'int')
-test_set = pd.read_csv('.../testing.test', delimiter = '\t')
+test_set = pd.read_csv('testing.test', delimiter = '\t')
 test_set = np.array(test_set, dtype = 'int')
 
 # Getting the number of users and prod
@@ -150,12 +150,41 @@ torch.save(sae.state_dict(), 'autoencoder.pkl') #save all parameter
 #plt.ioff()
 #plt.show()
 
-#save model
+#load model
 
+class SAE(nn.Module):
+    
+    #---define autoencoder---#
+    def __init__(self,  n_feature=nb_prod, n_hidden=20, n_reduce=10,): 
+        super(SAE, self).__init__() #get inheritance from nn.module
+        self.fc1 = nn.Linear(n_feature, n_hidden) #first connection with 20 elements hidden neurons
+        self.fc2 = nn.Linear(n_hidden, n_reduce) #20 to 20 and create another 10 neurons
+        self.fc3 = nn.Linear(n_reduce, n_hidden) #10 to 10 and decodeing
+        self.fc3.a = nn.Linear(n_hidden, 20) #10 to 10 and decodeing
+        self.fc3.b = nn.Linear(20, 20) #10 to 10 and decodeing
+        self.fc4 = nn.Linear(20, n_feature) #finish decoding and make output
+        self.activation = nn.Sigmoid() #this can be deleted
+    
+    #---feedforward function---#
+    def forward(self, x):
+        x=self.activation(self.fc1(x)) #and writes: x=nn.Sigmoid(self.fc1(x))...
+        x=self.activation(self.fc2(x))
+        x=self.activation(self.fc3(x))
+        x=self.activation(self.fc3.a(x))
+        x=self.activation(self.fc3.b(x))
+        x=self.fc4(x)
+        return x
+
+#loss_func = torch.nn.CrossEntropyLoss()  #softmax for classification
+loss_func=nn.MSELoss()
+
+sae2 = SAE(n_feature=nb_prod, n_hidden=20, n_reduce=10)
+sae2.load_state_dict(torch.load('autoencoder.pkl'))
 
 #test the sae
 test_loss = 0
 s=0.
+out=[]
 for id_user in range(nb_users):
     #the input formed by autoencoder will look at the ratings of prod,
     #based on thses ratings, it will predict the prod that users in test set haven't watched.
@@ -164,7 +193,8 @@ for id_user in range(nb_users):
         target = Variable(test_set[id_user]) #test set true value
         
         if torch.sum(target.data > 0) >0: #target.data means we extract torch.FloatTensor from Variable which can't not be computed 
-            output = sae(input)
+            output = sae2(input)
+            out.append(output)
             target.require_grad = False
             output[target ==0] = 0 #to save up some memory, we set vector of target ==0 in output=0, since those = 0 won't update weight
             loss=loss_func(output, target) #calculate MSE
@@ -175,14 +205,30 @@ for id_user in range(nb_users):
             #optimizer.step() #update intensity of weights
 print('test loss: '+str(test_loss/s))
 
-#tset
-#610 4.475
-input = Variable(training_set[0]).unsqueeze(0) 
-target = Variable(test_set[0]) 
-output = sae(input)
-output[target ==0] = 0
+#see top20 of output
+extr=[]
+recom=[]
+for extract in out:
+    extr.append({
+                    'all': extract.data.numpy().reshape(1682,1),
+                    'top20': np.argsort(extract.data.numpy().tolist()[0])[::-1][:20]
+                })
+    recom.append({'top20': np.argsort(extract.data.numpy().tolist()[0])[::-1][:20]})
 
+df=pd.DataFrame(recom)
+df.to_csv('dd.csv', sep='\t', encoding='utf-8')
+df.top20[0][:10]
 
-inp=input.data.numpy().reshape(1682,1)
-out=output.data.numpy().reshape(1682,1)
-tru=target.data.numpy().reshape(1682,1)
+#
+##tset
+##610 4.475
+#input = Variable(training_set[0]).unsqueeze(0) 
+#target = Variable(test_set[0]) 
+#output = sae(input)
+#output[target ==0] = 0
+#
+#
+#inp=input.data.numpy().reshape(1682,1)
+#out=output.data.numpy().reshape(1682,1)
+#tru=target.data.numpy().reshape(1682,1)
+
