@@ -43,12 +43,12 @@ class SAE(nn.Module):
         x=self.fc4(x)
         return x
    
-    #create optimizer
-    optimizer = torch.optim.Adadelta(sae.parameters(), lr=0.01, weight_decay=0.5)
-    #loss_func = torch.nn.CrossEntropyLoss()  #softmax for classification
-    loss_func=nn.MSELoss()
-    
-    sae2 = SAE(n_feature=nb_movies, n_hidden=20, n_reduce=10)
+#create optimizer
+optimizer = torch.optim.Adadelta(sae.parameters(), lr=0.01, weight_decay=0.5)
+#loss_func = torch.nn.CrossEntropyLoss()  #softmax for classification
+loss_func=nn.MSELoss()
+
+sae2 = SAE(n_feature=nb_movies, n_hidden=20, n_reduce=10)
 ```
 * then ```torch.load autoencoder.pkl``` as follows:
  ```python
